@@ -1,7 +1,10 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QTextEdit, QPushButton, QGridLayout, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QTextEdit, QPushButton, QGridLayout, QFileDialog, QTableWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from qtcode.codeeditor import CodeEditor
 from qt_material import apply_stylesheet
+from datetime import datetime
 
 class ProblemMaker(QWidget):
     def __init__(self):
@@ -10,48 +13,90 @@ class ProblemMaker(QWidget):
         self.setWindowTitle("Problem Maker")
         layout = QGridLayout()
 
-        # 첫 번째 줄 - 출력 위치 지정
-        self.label_output = QLabel("출력 위치")
-        self.folder_path = QLineEdit()
-        self.open_folder_path_btn = QPushButton("위치 지정...")
+        self.title = QLabel("Problem Maker")
+        # self.title.font().setPointSize(80)
 
-        layout.addWidget(self.label_output, 0, 0)
-        layout.addWidget(self.folder_path, 0, 1)
-        layout.addWidget(self.open_folder_path_btn, 0, 2)
+        self.folder_path_lbl = QLabel("출력 위치")
+        self.folder_path_txt = QLineEdit()
+        self.folder_path_open_btn = QPushButton("위치 지정...")
 
-        # 두 번째 줄 - 문제 지문 텍스트
-        label_problem_statement = QLabel("문제 지문")
-        layout.addWidget(label_problem_statement, 1, 0, 1, 3)
+        self.problem_statement_lbl = QLabel("문제 지문")
+        self.answer_code_lbl = QLabel("정답 코드")
 
-        # 세 번째 줄 - 문제 지문 입력 공간
-        self.text_edit_problem_statement = CodeEditor()
-        # self.text_edit_problem_statement.setAcceptRichText(False)
-        layout.addWidget(self.text_edit_problem_statement, 2, 0, 1, 3)
+        self.problem_statement_text = QTextEdit()
+        self.problem_statement_text.setAcceptRichText(False)
 
-        # 네 번째 줄 - 입력 예시 텍스트
-        label_input_example = QLabel("입력 예시")
-        label_output_example = QLabel("출력 예시")
+        self.answer_code_text = CodeEditor()
 
-        layout.addWidget(label_input_example, 3, 0)
-        layout.addWidget(label_output_example, 3, 1)
+        self.input_example_lbl = QLabel("입력 예시")
+        self.output_example_lbl = QLabel("출력 예시")
 
-        # 다섯 번째 줄 - 입력 예시, 출력 예시 입력 공간
-        self.text_edit_input_example = QTextEdit()
-        self.text_edit_output_example = QTextEdit()
+        self.input_example_text = QTextEdit()
+        self.output_example_text = QTextEdit()
 
-        layout.addWidget(self.text_edit_input_example, 4, 0)
-        layout.addWidget(self.text_edit_output_example, 4, 1)
+        self.get_output_from_code_btn = QPushButton("정답 코드로 출력 예시 생성")
+        self.add_case_btn = QPushButton("채점 케이스 추가")
+        self.remove_case_btn = QPushButton("채점 케이스 삭제")
+        self.create_problem_btn = QPushButton("문제 만들기")
 
-        # 레이아웃을 위젯에 설정
+        self.case_table = QTableWidget()
+        self.log = QTextEdit()
+
+        self.case_table.setEnabled(False)
+        self.log.setReadOnly(False)
+
+        layout.addWidget(self.title, 0, 0, 1, 9, Qt.AlignCenter)
+
+        layout.addWidget(self.folder_path_lbl, 1, 0, 1, 1, Qt.AlignCenter)
+        layout.addWidget(self.folder_path_txt, 1, 1, 1, 5)
+        layout.addWidget(self.folder_path_open_btn, 1, 6, 1, 3)
+
+        layout.addWidget(self.problem_statement_lbl, 2, 0, 1, 5)
+        layout.addWidget(self.answer_code_lbl, 2, 5, 1, 4)
+
+        layout.addWidget(self.problem_statement_text, 3, 0, 1, 5)
+        layout.addWidget(self.answer_code_text, 3, 5, 5, 4)
+
+        layout.addWidget(self.input_example_lbl, 4, 0, 1, 2, Qt.AlignCenter)
+        layout.addWidget(self.output_example_lbl, 4, 2, 1, 2, Qt.AlignCenter)
+
+        layout.addWidget(self.input_example_text, 5, 0, 3, 2)
+        layout.addWidget(self.output_example_text, 5, 2, 3, 2)
+
+        layout.addWidget(self.get_output_from_code_btn, 4, 4)
+        layout.addWidget(self.add_case_btn, 5, 4)
+        layout.addWidget(self.remove_case_btn, 6, 4)
+        layout.addWidget(self.create_problem_btn, 7, 4)
+
+        layout.addWidget(self.case_table, 8, 0, 1, 5)
+        layout.addWidget(self.log, 8, 5, 1, 4)
+
+        layout.setRowMinimumHeight(0, 30)
+        layout.setRowMinimumHeight(8, 250)
+
+        layout.setColumnMinimumWidth(5, 300)
+        layout.setColumnMinimumWidth(6, 200)
+
         self.setLayout(layout)
 
-        # 버튼 이벤트 연결
-        self.open_folder_path_btn.clicked.connect(self.open_folder_dialog)
+        self.folder_path_open_btn.clicked.connect(self.open_folder_dialog)
+
+        # after init
+        self.print_log("초기화 완료.")
 
     def open_folder_dialog(self):
         folder_path = QFileDialog.getExistingDirectory(self, "폴더 열기", "")
         if folder_path:
-            self.folder_path.setText(folder_path)
+            self.folder_path_txt.setText(folder_path)
+
+    def print_log(self, text):
+        now = datetime.now().strftime("[%m/%d %H:%M:%S.%f")[:-3]
+
+        current_text = self.log.toPlainText()
+        if current_text:
+            current_text += "\n"
+        
+        self.log.setText(current_text + f"{now}] -- " + str(text))
 
 
 if __name__ == "__main__":
