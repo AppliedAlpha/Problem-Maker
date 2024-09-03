@@ -193,7 +193,7 @@ class ProblemMaker(QWidget):
             path = self.folder_path_txt.text()
             name = self.problem_name_txt.text().strip()
             code = self.answer_code_text.toPlainText()
-            statement = self.problem_statement_text.toPlainText()
+            statement = self.problem_statement_text.toPlainText().strip()
 
             if not path:
                 QMessageBox.warning(self, "Problem Maker", "경로가 설정되지 않았습니다.")
@@ -210,6 +210,14 @@ class ProblemMaker(QWidget):
             if not self.case_table.rowCount():
                 QMessageBox.warning(self, "Problem Maker", "채점 데이터가 없습니다.")
                 return
+            
+            in_example_item = self.case_table.item(0, 0)
+            out_example_item = self.case_table.item(0, 1)
+
+            in_example_text = in_example_item.text() if in_example_item else ""
+            out_example_text = out_example_item.text() if out_example_item else ""
+
+            statement += f"\n\n[입력 예시]\n{in_example_text}\n\n[출력 예시]{out_example_text}\n"
             
             # 문제가 들어갈 폴더 만들기
             path += f"/{name}"
