@@ -5,7 +5,7 @@ import subprocess
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QTextEdit, QPushButton, QGridLayout, QFileDialog, QTableWidget, QMessageBox, QTableWidgetItem
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QTextCursor
 from qtcode.codeeditor import CodeEditor
 from qt_material import apply_stylesheet
 from datetime import datetime
@@ -121,6 +121,8 @@ class ProblemMaker(QWidget):
             current_text += "\n"
         
         self.log.setText(current_text + f"{now}] -- " + str(text))
+        self.log.moveCursor(QTextCursor.End)
+        self.log.ensureCursorVisible()
 
     def answer_code_clear(self):
         self.answer_code_text.setPlainText("")
@@ -133,8 +135,8 @@ class ProblemMaker(QWidget):
         row_idx = self.case_table.rowCount()
         
         self.case_table.insertRow(row_idx)
-        self.case_table.setItem(row_idx, 0, QTableWidgetItem(self.input_example_text.toPlainText()))
-        self.case_table.setItem(row_idx, 1, QTableWidgetItem(self.output_example_text.toPlainText()))
+        self.case_table.setItem(row_idx, 0, QTableWidgetItem(self.input_example_text.toPlainText().strip()))
+        self.case_table.setItem(row_idx, 1, QTableWidgetItem(self.output_example_text.toPlainText().strip()))
 
         self.input_example_text.setText("")
         self.output_example_text.setText("")
@@ -250,13 +252,14 @@ class ProblemMaker(QWidget):
                 _in.write(input_text)
                 _in.close()
 
-                _out = open(case_path + f"/{idx + 1}.in", "w+t", encoding="utf-8")
+                _out = open(case_path + f"/{idx + 1}.out", "w+t", encoding="utf-8")
                 _out.write(output_text)
                 _out.close()
 
                 self.print_log(f"[{name}] {idx+1}번 입출력 내보내기 완료.")
 
-                QMessageBox.information(self, "Problem Maker", f"[{name}]\n\n문제를 성공적으로 생성했습니다.")
+            # 문제 생성 완료
+            QMessageBox.information(self, "Problem Maker", f"[{name}]\n\n문제를 성공적으로 생성했습니다.")
 
         except Exception as err:
             err = err.with_traceback()
