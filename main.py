@@ -42,6 +42,9 @@ class ProblemMaker(QWidget):
         self.input_example_text = QTextEdit()
         self.output_example_text = QTextEdit()
 
+        self.input_example_text.setAcceptRichText(False)
+        self.output_example_text.setAcceptRichText(False)
+
         self.get_output_from_code_btn = QPushButton("정답 코드로 출력 예시 생성")
         self.add_case_btn = QPushButton("채점 케이스 추가")
         self.remove_case_btn = QPushButton("채점 케이스 삭제")
